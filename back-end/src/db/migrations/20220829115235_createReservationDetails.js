@@ -10,7 +10,7 @@ exports.up = function (knex) {
 }
 
 exports.down = function (knex) {
-	return knex.schema.talbe('reservations', (table) => {
+	return knex.schema.table('reservations', (table) => {
 		table.dropColumn('first_name')
 		table.dropColumn('last_name')
 		table.dropColumn('mobile_number')
