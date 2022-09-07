@@ -53,19 +53,12 @@ function hasOnlyValidProperties(req, res, next) {
 	next()
 }
 
-const dateFormat = /^\d\d\d\d-\d\d-\d\d$/
-const timeFormat = /^\d\d:\d\d$/
-
 function timeIsValid(timeString) {
-	return timeString.match(timeFormat)?.[0]
+	return timeString.match(/[0-9]{2}:[0-9]{2}/)
 }
 
 function dataFormatIsValid(dateString) {
-	return dateString.match(dateFormat)?.[0]
-}
-
-function timeBusinessHours(timeString) {
-	return timeString <= '10:30' && timeString >= '21:30'
+	return dateString.match(/\d{4}-\d{2}-\d{2}/)
 }
 
 function hasValidValues(req, res, next) {
@@ -91,13 +84,6 @@ function hasValidValues(req, res, next) {
 		})
 	}
 
-	// if (!timeBusinessHours(reservation_time)) {
-	// 	return {
-	// 		status: 400,
-	// 		message:
-	// 			'Your reservation time must be between the hours of 10:30AM and 9:30PM.',
-	// 	}
-	// }
 	next()
 }
 
@@ -107,17 +93,11 @@ function hasValidValues(req, res, next) {
  * List handler for reservation resources
  */
 async function list(req, res) {
-	const { mobile_number, date } = req.query
-	const reservations = await (mobile_number
-		? service.searchByPhone(mobile_number)
-		: service.searchByDate(date))
-
-	res.json({ data: reservations })
-}
-
-async function read(req, res) {
-	const { reservation } = res.locals
-	res.json({ data: reservation })
+	const { date } = req.query
+	const reservations = await service.list(date)
+	res.locals.data = reservations
+	const { data } = res.locals
+	res.json({ data: data })
 }
 
 async function create(req, res) {
@@ -126,12 +106,11 @@ async function create(req, res) {
 }
 
 module.exports = {
-	list,
 	create: [
 		hasOnlyValidProperties,
 		hasRequiredProperties,
 		hasValidValues,
 		asyncErrorBoundary(create),
 	],
-	read: [reservationExists, asyncErrorBoundary(read)],
+	list: [asyncErrorBoundary(list)],
 }
