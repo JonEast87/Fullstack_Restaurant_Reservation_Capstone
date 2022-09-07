@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useHistory } from 'react-router-dom'
-import { today, formatAsTime } from '../../utils/date-time'
+import { formatAsTime } from '../../utils/date-time'
 import { createReservation } from '../../utils/api'
 import ErrorAlert from '../../layout/ErrorAlert'
 
@@ -10,7 +10,7 @@ import ErrorAlert from '../../layout/ErrorAlert'
  * method will contain the http-methods passed into form
  */
 
-function Form({ method }) {
+function Form() {
 	const initialState = {
 		first_name: '',
 		last_name: '',

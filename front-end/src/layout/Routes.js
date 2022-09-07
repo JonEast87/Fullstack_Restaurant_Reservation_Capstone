@@ -1,5 +1,5 @@
 import React from 'react'
-import { Redirect, Route, Switch, useHistory } from 'react-router-dom'
+import { Redirect, Route, Switch } from 'react-router-dom'
 import Dashboard from '../dashboard/Dashboard'
 import Reservations from '../reservations/new/New'
 import { today } from '../utils/date-time'
