@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { listReservations } from "../utils/api";
-import ErrorAlert from "../layout/ErrorAlert";
+import React, { useEffect, useState } from 'react'
+import useQuery from '../utils/useQuery'
+import { listReservations } from '../utils/api'
+import ErrorAlert from '../layout/ErrorAlert'
+import DateNavigation from './DateNavigation'
+import List from '../reservations/list/List'
 
 /**
  * Defines the dashboard page.
@@ -9,30 +12,38 @@ import ErrorAlert from "../layout/ErrorAlert";
  * @returns {JSX.Element}
  */
 function Dashboard({ date }) {
-  const [reservations, setReservations] = useState([]);
-  const [reservationsError, setReservationsError] = useState(null);
+	const dateInUrl = useQuery().get('date')
+	if (dateInUrl) {
+		console.log(dateInUrl)
+		date = dateInUrl
+	}
 
-  useEffect(loadDashboard, [date]);
+	const [reservations, setReservations] = useState([])
+	const [reservationsError, setReservationsError] = useState(null)
 
-  function loadDashboard() {
-    const abortController = new AbortController();
-    setReservationsError(null);
-    listReservations({ date }, abortController.signal)
-      .then(setReservations)
-      .catch(setReservationsError);
-    return () => abortController.abort();
-  }
+	useEffect(loadDashboard, [date])
 
-  return (
-    <main>
-      <h1>Dashboard</h1>
-      <div className="d-md-flex mb-3">
-        <h4 className="mb-0">Reservations for date</h4>
-      </div>
-      <ErrorAlert error={reservationsError} />
-      {JSON.stringify(reservations)}
-    </main>
-  );
+	function loadDashboard() {
+		const abortController = new AbortController()
+		setReservationsError(null)
+		listReservations({ date }, abortController.signal)
+			.then(setReservations)
+			.catch(setReservationsError)
+		return () => abortController.abort()
+	}
+
+	return (
+		<main>
+			<h1>Dashboard</h1>
+			<div className='d-md-flex mb-3'>
+				<h4 className='mb-0'>Reservations for: {date}</h4>
+				<DateNavigation date={date} />
+			</div>
+			{JSON.stringify(reservations)}
+			<ErrorAlert error={reservationsError} />
+			<List reservations={reservations} />
+		</main>
+	)
 }
 
-export default Dashboard;
+export default Dashboard

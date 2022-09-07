@@ -1,6 +1,6 @@
 import React from 'react'
 import { Route, Switch } from 'react-router-dom'
-import New from './ReservationCreate'
+import New from '../new/New'
 import NotFound from '../layout/NotFound'
 
 function Reservations() {

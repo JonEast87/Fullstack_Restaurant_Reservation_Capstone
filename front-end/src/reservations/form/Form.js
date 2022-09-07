@@ -1,64 +1,28 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useHistory } from 'react-router-dom'
-import { useParams } from 'react-router'
-import { today, formatAsTime } from '../utils/date-time'
-import { createReservation } from '../utils/api'
+import { today, formatAsTime } from '../../utils/date-time'
+import { createReservation } from '../../utils/api'
+import ErrorAlert from '../../layout/ErrorAlert'
 
-function ReservationForm({ method }) {
+/**
+ * Defines the reservation form
+ * @param method
+ * method will contain the http-methods passed into form
+ */
+
+function Form({ method }) {
 	const initialState = {
 		first_name: '',
 		last_name: '',
 		mobile_number: '',
-		reservation_date: today(),
+		reservation_date: '',
 		reservation_time: formatAsTime(new Date().toTimeString()),
-		people: 1,
+		people: '',
 	}
 
-	const [reservation, setReservation] = useState(initialState)
+	const [reservation, setReservation] = useState({ ...initialState })
+	const [reservationsError, setReservationsError] = useState(null)
 	const history = useHistory()
-
-	useEffect(() => {
-		if (method === 'POST') return
-
-		const abortController = new AbortController()
-
-		// getReservation(reservation_id, abortController.id)
-		//   .then(setFormData)
-		//   .catch(setReservationError)
-
-		return () => abortController.abort()
-	}, [, /* reservation_id */ method])
-
-	const submitEdit = () => {
-		const abortController = new AbortController()
-
-		const trimmedFormData = {
-			first_name: reservation.first_name,
-			last_name: reservation.last_name,
-			people: reservation.people,
-			mobile_number: reservation.mobile_number,
-			reservation_date: reservation.reservation_date,
-			reservation_time: reservation.reservation_time,
-		}
-
-		// updateReservation(reservation_id, trimmedFormData, abortController.signal)
-		// .then(() => history.push(`/dashboard?date=${reservation.reservation_date}`))
-		// .catch(setReservationError)
-
-		return () => abortController.abort()
-	}
-
-	const submitNew = () => {
-		const abortController = new AbortController()
-
-		createReservation(reservation, abortController.signal)
-			.then(() =>
-				history.push(`/dashboard?date=${reservation.reservation_date}`)
-			)
-			.catch(console.log('There was an error.'))
-
-		return () => abortController.abort()
-	}
 
 	const handleChange = ({ target }) => {
 		let value = target.value
@@ -75,7 +39,15 @@ function ReservationForm({ method }) {
 
 	const handleSubmit = (event) => {
 		event.preventDefault()
-		method === 'POST' ? submitNew() : submitEdit()
+		const abortController = new AbortController()
+
+		createReservation(reservation, abortController.signal)
+			.then(() => {
+				history.push(`/dashboard?date=${reservation.reservation_date}`)
+			})
+			.catch(setReservationsError)
+
+		return () => abortController.abort()
 	}
 
 	const handleCancel = (event) => {
@@ -89,66 +61,60 @@ function ReservationForm({ method }) {
 				<div className='form-group'>
 					<label htmlFor='first_name'>First Name</label>
 					<input
-						name='first_name'
 						id='first_name'
-						className='form-control'
-						placeholder='First Name'
 						type='text'
+						name='first_name'
+						className='form-control'
 						onChange={handleChange}
 						value={reservation.first_name}
 						required={true}
 					/>
 					<label htmlFor='last_name'>Last Name</label>
 					<input
-						name='last_name'
 						id='last_name'
-						className='form-control'
-						placeholder='Last Name'
 						type='text'
+						name='last_name'
+						className='form-control'
 						onChange={handleChange}
 						value={reservation.last_name}
 						required={true}
 					/>
 					<label htmlFor='mobile_number'>Mobile Number</label>
 					<input
-						name='mobile_number'
 						id='mobile_number'
-						className='form-control'
-						placeholder='Mobile Number'
 						type='text'
+						name='mobile_number'
+						className='form-control'
 						onChange={handleChange}
 						value={reservation.mobile_number}
 						required={true}
 					/>
 					<label htmlFor='reservation_date'>Reservation Date</label>
 					<input
-						name='reservation_date'
 						id='reservation_time'
+						type='date'
+						name='reservation_date'
 						className='form-control'
-						placeholder='Reservation Date'
-						type='text'
 						onChange={handleChange}
 						value={reservation.reservation_date}
 						required={true}
 					/>
 					<label htmlFor='reservation_time'>Reservation Time</label>
 					<input
-						name='reservation_time'
 						id='reservation_time'
+						type='time'
+						name='reservation_time'
 						className='form-control'
-						placeholder='Reservation Time'
-						type='text'
 						onChange={handleChange}
 						value={reservation.reservation_time}
 						required={true}
 					/>
 					<label htmlFor='People'>People</label>
 					<input
-						name='people'
 						id='people'
-						className='form-control'
-						placeholder='People'
 						type='number'
+						name='people'
+						className='form-control'
 						onChange={handleChange}
 						value={reservation.people}
 						required={true}
@@ -165,9 +131,10 @@ function ReservationForm({ method }) {
 						<span className='oi oi-check'>Create</span>
 					</button>
 				</div>
+				<ErrorAlert error={reservationsError} />
 			</fieldset>
 		</form>
 	)
 }
 
-export default ReservationForm
+export default Form

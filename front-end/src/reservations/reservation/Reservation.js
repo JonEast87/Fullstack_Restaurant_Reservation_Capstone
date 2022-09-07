@@ -1,0 +1,23 @@
+import React from 'react'
+
+function Reservation({
+	reservation_id,
+	first_name,
+	last_name,
+	mobile_number,
+	reservation_time,
+	people,
+}) {
+	return (
+		<div>
+			<h4>
+				{reservation_id} at {reservation_time} (party of {people})
+			</h4>
+			<p>
+				Contact details for {first_name} {last_name}: {mobile_number}
+			</p>
+		</div>
+	)
+}
+
+export default Reservation
