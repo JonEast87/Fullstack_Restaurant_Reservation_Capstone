@@ -61,6 +61,17 @@ function dataFormatIsValid(dateString) {
 	return dateString.match(/\d{4}-\d{2}-\d{2}/)
 }
 
+function dayIsTuesday(dateString) {
+	const date = new Date(dateString)
+	return date.getUTCDate() !== 2
+}
+
+function dateIsNotPast(reservation_date, reservation_time) {
+	const today = Date.now()
+	const date = new Date(`${reservation_date} ${reservation_time}`).valueOf()
+	return date > today
+}
+
 function hasValidValues(req, res, next) {
 	const { reservation_date, reservation_time, people } = req.body.data
 
@@ -70,6 +81,7 @@ function hasValidValues(req, res, next) {
 			message: 'Amount of people must be a whole number.',
 		})
 	}
+
 	if (!timeIsValid(reservation_time)) {
 		return next({
 			status: 400,
@@ -84,6 +96,19 @@ function hasValidValues(req, res, next) {
 		})
 	}
 
+	if (!dateIsNotPast(reservation_date, reservation_time)) {
+		return next({
+			status: 400,
+			message: 'This date is not the past, please schedule for a future day.',
+		})
+	}
+
+	if (dayIsTuesday(reservation_date)) {
+		return next({
+			status: 400,
+			message: 'closed',
+		})
+	}
 	next()
 }
 
