@@ -72,6 +72,10 @@ function dateIsNotPast(reservation_date, reservation_time) {
 	return date > today
 }
 
+function isWithinBusinessHours(reservation_time) {
+	return reservation_time <= '21:30' && reservation_time >= '10:30'
+}
+
 function hasValidValues(req, res, next) {
 	const { reservation_date, reservation_time, people } = req.body.data
 
@@ -85,30 +89,39 @@ function hasValidValues(req, res, next) {
 	if (!timeIsValid(reservation_time)) {
 		return next({
 			status: 400,
-			message: 'reservation_time',
+			message: 'This is not a valid format for time. HH:MM',
 		})
 	}
 
 	if (!dataFormatIsValid(reservation_date)) {
 		return next({
 			status: 400,
-			message: 'reservation_date',
+			message: 'This is not a valid format for dates. YYYY-MM-DD',
 		})
 	}
 
 	if (!dateIsNotPast(reservation_date, reservation_time)) {
 		return next({
 			status: 400,
-			message: 'This date is not the past, please schedule for a future day.',
+			message: 'This date has past, please schedule for a future day.',
 		})
 	}
 
 	if (dayIsTuesday(reservation_date)) {
 		return next({
 			status: 400,
-			message: 'closed',
+			message: 'The establishment is closed on Tuesdays.',
 		})
 	}
+
+	if (!isWithinBusinessHours(reservation_time)) {
+		return next({
+			status: 400,
+			message:
+				'This time is not withing kitchen operating hours (10:30AM - 9:30PM).',
+		})
+	}
+
 	next()
 }
 
