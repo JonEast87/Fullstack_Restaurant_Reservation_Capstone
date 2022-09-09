@@ -1,5 +1,5 @@
 const service = require('./tables.service')
-const serviceReservation = require('./tables.service')
+const serviceReservation = require('../reservations/reservations.service')
 const asyncBoundaryError = require('../errors/ayncErrorBoundary')
 const hasProperties = require('../errors/hasProperties')
 const hasRequiredProperties = hasProperties('table_name', 'capacity')
@@ -17,7 +17,7 @@ async function hasReservationId(req, res, next) {
 }
 
 async function reservationExists(req, res, next) {
-	const { reservation_id } = req.params
+	const { reservation_id } = req.body.data
 	const reservation = await serviceReservation.read(reservation_id)
 
 	if (reservation) {
@@ -47,18 +47,18 @@ async function tableExists(req, res, next) {
 }
 
 function tableSize(req, res, next) {
-	const { table, reservation } = req.locals
+	const { table, reservation } = res.locals
 	if (table.capacity >= reservation.people) {
 		return next()
 	}
 
 	next({
 		status: 400,
-		message: `This table (${table.table_id}) is not large enough to host your party of ${reservation.people} people.`,
+		message: `This table (${table.table_id}) does not have the capacity to host your party of ${reservation.people} people.`,
 	})
 }
 
-function tableIsFree() {
+function tableIsFree(req, res, next) {
 	const { table } = res.locals
 	if (!table.reservation_id) {
 		return next()
@@ -132,6 +132,17 @@ async function read(req, res) {
 	res.json({ data: table })
 }
 
+async function update(req, res) {
+	const { table } = res.locals
+	const { reservation_id } = req.body.data
+	const updatedTable = {
+		...table,
+		reservation_id,
+	}
+	const data = await service.update(updatedTable)
+	res.json({ data: data })
+}
+
 module.exports = {
 	create: [
 		hasOnlyValidProperties,
@@ -139,6 +150,14 @@ module.exports = {
 		hasValidValues,
 		asyncBoundaryError(create),
 	],
-	read: [tableExists, asyncBoundaryError(read)],
 	list,
+	read: [tableExists, asyncBoundaryError(read)],
+	update: [
+		hasReservationId,
+		reservationExists,
+		tableExists,
+		tableSize,
+		tableIsFree,
+		asyncBoundaryError(update),
+	],
 }

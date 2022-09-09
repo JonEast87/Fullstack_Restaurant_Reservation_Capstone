@@ -18,8 +18,17 @@ function read(table_id) {
 		.then((result) => result[0])
 }
 
+function update(updateTable) {
+	return knex('tables')
+		.select('*')
+		.where({ table_id: updateTable.table_id })
+		.update(updateTable, '*')
+		.then((updatedTables) => updatedTables[0])
+}
+
 module.exports = {
 	list,
 	create,
 	read,
+	update,
 }
