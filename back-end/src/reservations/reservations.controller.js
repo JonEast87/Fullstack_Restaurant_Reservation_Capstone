@@ -20,6 +20,7 @@ async function reservationExists(req, res, next) {
 		res.locals.reservation = reservation
 		return next()
 	}
+
 	next({
 		status: 400,
 		message: `Reservation with id: ${reservationId} was not found.`,
@@ -50,6 +51,7 @@ function hasOnlyValidProperties(req, res, next) {
 			message: `Invalid field(s): ${invalidFields.join(', ')}`,
 		})
 	}
+
 	next()
 }
 
@@ -143,6 +145,11 @@ async function create(req, res) {
 	res.status(201).json({ data: reservation })
 }
 
+async function read(req, res) {
+	const { reservation } = res.locals
+	res.json({ data: reservation })
+}
+
 module.exports = {
 	create: [
 		hasOnlyValidProperties,
@@ -150,5 +157,6 @@ module.exports = {
 		hasValidValues,
 		asyncErrorBoundary(create),
 	],
+	read: [reservationExists, asyncErrorBoundary(read)],
 	list: [asyncErrorBoundary(list)],
 }
