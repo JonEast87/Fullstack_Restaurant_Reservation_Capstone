@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import useQuery from '../utils/useQuery'
-import { listReservations } from '../utils/api'
+import { listReservations, listTables } from '../utils/api'
 import ErrorAlert from '../layout/ErrorAlert'
 import DateNavigation from './DateNavigation'
-import List from '../reservations/list/List'
+import ReservationsList from '../reservations/list/List'
+import TablesList from '../tables/list/TablesList'
 
 /**
  * Defines the dashboard page.
@@ -14,34 +15,46 @@ import List from '../reservations/list/List'
 function Dashboard({ date }) {
 	const dateInUrl = useQuery().get('date')
 	if (dateInUrl) {
-		console.log(dateInUrl)
 		date = dateInUrl
 	}
 
 	const [reservations, setReservations] = useState([])
 	const [reservationsError, setReservationsError] = useState(null)
 
-	useEffect(loadDashboard, [date])
+	const [tables, setTables] = useState([])
+	const [tablesError, setTablesError] = useState(null)
 
-	function loadDashboard() {
+	function loadReservation() {
 		const abortController = new AbortController()
 		setReservationsError(null)
+
 		listReservations({ date }, abortController.signal)
 			.then(setReservations)
 			.catch(setReservationsError)
 		return () => abortController.abort()
 	}
 
+	function loadTables() {
+		const abortController = new AbortController()
+		setTablesError(null)
+
+		listTables(abortController.signal).then(setTables).catch(setTablesError)
+
+		return () => abortController.abort()
+	}
+
+	useEffect(loadReservation, [date])
+	useEffect(loadTables, [])
+
 	return (
 		<main>
-			<h1>Dashboard</h1>
-			<div className='d-md-flex mb-3'>
-				<h4 className='mb-0'>Reservations for: {date}</h4>
-				<DateNavigation date={date} />
-			</div>
-			{JSON.stringify(reservations)}
+			<DateNavigation date={date} />
+			<h2 className='mb-0'>Reservations:</h2>
+			<ReservationsList reservations={reservations} />
 			<ErrorAlert error={reservationsError} />
-			<List reservations={reservations} />
+			<h2 className='mb-0'>Tables:</h2>
+			<TablesList tables={tables} />
+			<ErrorAlert error={tablesError} />
 		</main>
 	)
 }

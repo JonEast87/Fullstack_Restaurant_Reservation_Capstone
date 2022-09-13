@@ -1,5 +1,5 @@
 import React from 'react'
-import Table from ',,/table/Table'
+import Table from '../table/Table'
 
 function TablesList({ tables }) {
 	let tablesList = null

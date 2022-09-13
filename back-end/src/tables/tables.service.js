@@ -18,12 +18,22 @@ function read(table_id) {
 		.then((result) => result[0])
 }
 
-function update(updateTable) {
-	return knex('tables')
-		.select('*')
-		.where({ table_id: updateTable.table_id })
-		.update(updateTable, '*')
-		.then((updatedTables) => updatedTables[0])
+async function update(updateTable, reservationId, updateReservation) {
+	try {
+		await knex.transaction(async (transaction) => {
+			const returnUpdateTable = await transaction('tables')
+				.where({ table_id: updateTable.table_id })
+				.update(updateTable, '*')
+				.then((updatedTables) => updatedTables[0])
+
+			const returnUpdateReservation = await transaction('reservations')
+				.where({ reservation_id: reservationId })
+				.update({ status: updateReservation }, '*')
+				.then((updatedReservation) => updatedReservation[0])
+		})
+	} catch (error) {
+		console.error(error)
+	}
 }
 
 module.exports = {

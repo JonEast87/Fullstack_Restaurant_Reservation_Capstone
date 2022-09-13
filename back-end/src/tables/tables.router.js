@@ -6,10 +6,8 @@ const controller = require('./tables.controller')
  *
  * @type {Router}
  */
-router.route('/').get(controller.list).post(controller.create)
-
-router.route('/:table_id').get(controller.read)
-
 router.route('/:table_id/seat').put(controller.update)
+
+router.route('/').get(controller.list).post(controller.create)
 
 module.exports = router

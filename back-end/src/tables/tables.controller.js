@@ -2,14 +2,14 @@ const service = require('./tables.service')
 const serviceReservation = require('../reservations/reservations.service')
 const asyncBoundaryError = require('../errors/ayncErrorBoundary')
 const hasProperties = require('../errors/hasProperties')
-const hasRequiredProperties = hasProperties('table_name', 'capacity')
+
 const VALID_PROPERTIES = ['table_name', 'capacity']
+const hasRequiredProperties = hasProperties(...VALID_PROPERTIES)
 
 async function hasReservationId(req, res, next) {
 	if (req.body?.data?.reservation_id) {
 		return next()
 	}
-
 	next({
 		status: 400,
 		message: `reservation_id is missing from request.`,
@@ -24,7 +24,6 @@ async function reservationExists(req, res, next) {
 		res.locals.reservation = reservation
 		return next()
 	}
-
 	next({
 		status: 404,
 		message: `Reservation with id: ${reservation_id} was not found.`,
@@ -39,7 +38,6 @@ async function tableExists(req, res, next) {
 		res.locals.table = table
 		return next()
 	}
-
 	next({
 		status: 404,
 		message: `Table with id: ${table_id} was not found.`,
@@ -51,7 +49,6 @@ function tableSize(req, res, next) {
 	if (table.capacity >= reservation.people) {
 		return next()
 	}
-
 	next({
 		status: 400,
 		message: `This table (${table.table_id}) does not have the capacity to host your party of ${reservation.people} people.`,
@@ -63,16 +60,38 @@ function tableIsFree(req, res, next) {
 	if (!table.reservation_id) {
 		return next()
 	}
-
 	next({
 		status: 400,
 		message: `Table with id ${table.table_id} is already occupied.`,
 	})
 }
 
+function occupyTable(req, res, next) {
+	const { table } = res.locals
+	const { reservation_id } = req.body.data
+	table.reservation_id = reservation_id
+	if (table.reservation_id) {
+		return next()
+	}
+	next({
+		status: 400,
+		message: `Table with id ${table.table_id} is not assignable to reservation id ${table.reservation_id}.`,
+	})
+}
+
+function unoccupyTable(req, res, next) {
+	const { table } = res.locals
+	if (table.reservation_id) {
+		return next()
+	}
+	next({
+		status: 400,
+		message: `Table with id ${table.table_id} is not occupied.`,
+	})
+}
+
 function hasOnlyValidProperties(req, res, next) {
 	const { data = {} } = req.body
-
 	const invalidFields = Object.keys(data).filter(
 		(field) => !VALID_PROPERTIES.includes(field)
 	)
@@ -83,7 +102,6 @@ function hasOnlyValidProperties(req, res, next) {
 			message: `Invalid field(s): ${invalidFields.join(', ')}`,
 		})
 	}
-
 	next()
 }
 
@@ -111,7 +129,6 @@ function hasValidValues(req, res, next) {
 			message: `table_name must be more than one character.`,
 		})
 	}
-
 	next()
 }
 
@@ -134,13 +151,11 @@ async function read(req, res) {
 
 async function update(req, res) {
 	const { table } = res.locals
-	const { reservation_id } = req.body.data
 	const updatedTable = {
 		...table,
-		reservation_id,
 	}
 	const data = await service.update(updatedTable)
-	res.json({ data: data })
+	res.json({ data })
 }
 
 module.exports = {
@@ -150,7 +165,7 @@ module.exports = {
 		hasValidValues,
 		asyncBoundaryError(create),
 	],
-	list,
+	list: asyncBoundaryError(list),
 	read: [tableExists, asyncBoundaryError(read)],
 	update: [
 		hasReservationId,
@@ -158,6 +173,7 @@ module.exports = {
 		tableExists,
 		tableSize,
 		tableIsFree,
+		occupyTable,
 		asyncBoundaryError(update),
 	],
 }

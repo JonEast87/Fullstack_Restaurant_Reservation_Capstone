@@ -1,13 +1,15 @@
 import React from 'react'
 import Form from '../form/Form'
 
-function ReservationCreate() {
+function New() {
 	return (
-		<main>
-			<h1>Create Reservation</h1>
-			<Form method={'POST'} />
-		</main>
+		<section>
+			<div className='d-md-flex mb-3'>
+				<h1 className='mb-0'>Make a Reservation</h1>
+			</div>
+			<Form />
+		</section>
 	)
 }
 
-export default ReservationCreate
+export default New

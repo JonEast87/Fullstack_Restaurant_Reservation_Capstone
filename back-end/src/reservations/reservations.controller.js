@@ -1,14 +1,16 @@
 const service = require('./reservations.service')
 const asyncErrorBoundary = require('../errors/ayncErrorBoundary')
 const hasProperty = require('../errors/hasProperties')
-const hasRequiredProperties = hasProperty(
+
+const VALID_PROPERTIES = [
 	'first_name',
 	'last_name',
 	'mobile_number',
 	'reservation_date',
 	'reservation_time',
-	'people'
-)
+	'people',
+]
+const hasRequiredProperties = hasProperty(...VALID_PROPERTIES)
 
 // ---- Validation Handlers ----
 
@@ -20,23 +22,11 @@ async function reservationExists(req, res, next) {
 		res.locals.reservation = reservation
 		return next()
 	}
-
 	next({
 		status: 400,
 		message: `Reservation with id: ${reservationId} was not found.`,
 	})
 }
-
-const VALID_PROPERTIES = [
-	'first_name',
-	'last_name',
-	'mobile_number',
-	'reservation_date',
-	'reservation_time',
-	'people',
-	'created_at',
-	'updated_at',
-]
 
 function hasOnlyValidProperties(req, res, next) {
 	const { data = {} } = req.body
@@ -51,7 +41,6 @@ function hasOnlyValidProperties(req, res, next) {
 			message: `Invalid field(s): ${invalidFields.join(', ')}`,
 		})
 	}
-
 	next()
 }
 
@@ -65,7 +54,7 @@ function dataFormatIsValid(dateString) {
 
 function dayIsTuesday(dateString) {
 	const date = new Date(dateString)
-	return date.getUTCDate() !== 2
+	return date.getUTCDate() === 2
 }
 
 function dateIsNotPast(reservation_date, reservation_time) {
@@ -74,7 +63,7 @@ function dateIsNotPast(reservation_date, reservation_time) {
 	return date > today
 }
 
-function isWithinBusinessHours(reservation_time) {
+function isBusinessHours(reservation_time) {
 	return reservation_time <= '21:30' && reservation_time >= '10:30'
 }
 
@@ -109,18 +98,17 @@ function hasValidValues(req, res, next) {
 		})
 	}
 
+	if (!isBusinessHours(reservation_time)) {
+		return next({
+			status: 400,
+			message: 'This is not during operating hours (10:30AM - 9:30PM).',
+		})
+	}
+
 	if (dayIsTuesday(reservation_date)) {
 		return next({
 			status: 400,
 			message: 'The establishment is closed on Tuesdays.',
-		})
-	}
-
-	if (!isWithinBusinessHours(reservation_time)) {
-		return next({
-			status: 400,
-			message:
-				'This time is not withing kitchen operating hours (10:30AM - 9:30PM).',
 		})
 	}
 
@@ -140,14 +128,14 @@ async function list(req, res) {
 	res.json({ data: data })
 }
 
-async function create(req, res) {
-	const reservation = await service.create(req.body.data)
-	res.status(201).json({ data: reservation })
-}
-
 async function read(req, res) {
 	const { reservation } = res.locals
 	res.json({ data: reservation })
+}
+
+async function create(req, res) {
+	const data = await service.create(req.body.data)
+	res.status(201).json({ data })
 }
 
 module.exports = {
@@ -157,6 +145,6 @@ module.exports = {
 		hasValidValues,
 		asyncErrorBoundary(create),
 	],
-	read: [reservationExists, asyncErrorBoundary(read)],
 	list: [asyncErrorBoundary(list)],
+	read: [reservationExists, asyncErrorBoundary(read)],
 }
