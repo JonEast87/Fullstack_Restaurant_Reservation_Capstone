@@ -3,8 +3,8 @@ const serviceReservation = require('../reservations/reservations.service')
 const asyncErrorBoundary = require('../errors/asyncErrorBoundary')
 const hasProperties = require('../errors/hasProperties')
 
-const VALID_PROPERTIES = ['table_name', 'capacity']
-const hasRequiredProperties = hasProperties(...VALID_PROPERTIES)
+const VALID_PROPERTIES = ['table_name', 'capacity', 'reservation_id']
+const hasRequiredProperties = hasProperties(...['table_name', 'capacity'])
 
 async function hasReservationId(req, res, next) {
 	if (req.body?.data?.reservation_id) {
@@ -27,6 +27,17 @@ async function reservationExists(req, res, next) {
 	next({
 		status: 404,
 		message: `Reservation with id: ${reservation_id} was not found.`,
+	})
+}
+
+async function reservationBooked(req, res, next) {
+	const { reservation } = res.locals
+	if (reservation.status !== 'seated') {
+		return next()
+	}
+	next({
+		status: 400,
+		message: 'Reservation is already "seated".',
 	})
 }
 
@@ -81,6 +92,8 @@ function occupyTable(req, res, next) {
 	const { table } = res.locals
 	const { reservation_id } = req.body.data
 	table.reservation_id = reservation_id
+	res.locals.resId = reservation_id
+	res.locals.resStatus = 'seated'
 	if (table.reservation_id) {
 		return next()
 	}
@@ -92,12 +105,15 @@ function occupyTable(req, res, next) {
 
 function unoccupyTable(req, res, next) {
 	const { table } = res.locals
-	if (table.reservation_id) {
+	res.locals.resId = table.reservation_id
+	table.reservation_id = null
+	res.locals.resStatus = 'finished'
+	if (!table.reservation_id) {
 		return next()
 	}
 	next({
 		status: 400,
-		message: `Table with id ${table.table_id} is not occupied.`,
+		message: `Table with id ${table.table_id} is not removable from reservation id ${table.reservation_id}.`,
 	})
 }
 
@@ -162,7 +178,7 @@ async function read(req, res) {
 
 async function update(req, res) {
 	const { table, resId, resStatus } = res.locals
-
+	console.log(res.locals)
 	const updateTable = {
 		...table,
 	}
@@ -177,21 +193,22 @@ module.exports = {
 		hasValidValues,
 		asyncErrorBoundary(create),
 	],
-	list: asyncErrorBoundary(list),
 	read: [tableExists, asyncErrorBoundary(read)],
 	update: [
-		hasReservationId,
-		reservationExists,
-		tableExists,
+		asyncErrorBoundary(hasReservationId),
+		asyncErrorBoundary(reservationExists),
+		asyncErrorBoundary(reservationBooked),
+		asyncErrorBoundary(tableExists),
 		tableSize,
 		tableIsFree,
 		occupyTable,
 		asyncErrorBoundary(update),
 	],
 	destroy: [
-		tableExists,
+		asyncErrorBoundary(tableExists),
 		tableIsNotFree,
 		unoccupyTable,
 		asyncErrorBoundary(update),
 	],
+	list: asyncErrorBoundary(list),
 }

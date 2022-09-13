@@ -22,7 +22,7 @@ function create(reservation) {
 }
 
 function update(reservation_id, status) {
-	return knex('reservation').where({ reservation_id }).update({ status }, '*')
+	return knex('reservations').where({ reservation_id }).update({ status }, '*')
 }
 
 module.exports = {
