@@ -1,6 +1,6 @@
 const service = require('./tables.service')
 const serviceReservation = require('../reservations/reservations.service')
-const asyncBoundaryError = require('../errors/ayncErrorBoundary')
+const asyncErrorBoundary = require('../errors/asyncErrorBoundary')
 const hasProperties = require('../errors/hasProperties')
 
 const VALID_PROPERTIES = ['table_name', 'capacity']
@@ -63,6 +63,17 @@ function tableIsFree(req, res, next) {
 	next({
 		status: 400,
 		message: `Table with id ${table.table_id} is already occupied.`,
+	})
+}
+
+function tableIsNotFree(req, res, next) {
+	const { table } = res.locals
+	if (table.reservation_id) {
+		return next()
+	}
+	next({
+		status: 400,
+		message: `Table with id ${table.table_id} is not occupied.`,
 	})
 }
 
@@ -150,11 +161,12 @@ async function read(req, res) {
 }
 
 async function update(req, res) {
-	const { table } = res.locals
-	const updatedTable = {
+	const { table, resId, resStatus } = res.locals
+
+	const updateTable = {
 		...table,
 	}
-	const data = await service.update(updatedTable)
+	const data = await service.update(updateTable, resId, resStatus)
 	res.json({ data })
 }
 
@@ -163,10 +175,10 @@ module.exports = {
 		hasOnlyValidProperties,
 		hasRequiredProperties,
 		hasValidValues,
-		asyncBoundaryError(create),
+		asyncErrorBoundary(create),
 	],
-	list: asyncBoundaryError(list),
-	read: [tableExists, asyncBoundaryError(read)],
+	list: asyncErrorBoundary(list),
+	read: [tableExists, asyncErrorBoundary(read)],
 	update: [
 		hasReservationId,
 		reservationExists,
@@ -174,6 +186,12 @@ module.exports = {
 		tableSize,
 		tableIsFree,
 		occupyTable,
-		asyncBoundaryError(update),
+		asyncErrorBoundary(update),
+	],
+	destroy: [
+		tableExists,
+		tableIsNotFree,
+		unoccupyTable,
+		asyncErrorBoundary(update),
 	],
 }

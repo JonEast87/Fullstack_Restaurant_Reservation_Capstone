@@ -1,15 +1,15 @@
 import React from 'react'
 
-function Reservation({
-	reservation_id,
-	first_name,
-	last_name,
-	mobile_number,
-	reservation_time,
-	people,
-	status = null,
-}) {
-	let displayStatus = status || 'booked'
+function Reservation({ reservation }) {
+	const {
+		reservation_id,
+		first_name,
+		last_name,
+		mobile_number,
+		reservation_time,
+		people,
+		status,
+	} = reservation
 
 	const statusIndicators = {
 		booked: 'danger',
@@ -17,7 +17,16 @@ function Reservation({
 		finished: 'muted',
 	}
 
-	const statusIndicator = statusIndicators[displayStatus]
+	const statusIndicator = statusIndicators[status]
+
+	const seatButton =
+		status !== 'booked' ? null : (
+			<a
+				href={`/reservations/${reservation_id}/seat`}
+				className='btn btn-primary'>
+				Seat
+			</a>
+		)
 
 	return (
 		<div>
@@ -27,12 +36,18 @@ function Reservation({
 					"{last_name}, party of {people}!"
 				</h5>
 				<p className='card-text'>
-					"Contact: {first_name} {last_name}, {mobile_number}"
+					Contact: {first_name} {last_name}, {mobile_number}
 				</p>
-				<a href={`/reservations/${reservation_id}/seat`}>Seat</a>
+				{seatButton}
 			</div>
-			<div className={`card-footer text-${statusIndicator}`}>
-				Status: {displayStatus}
+			<div className={'card-footer'}>
+				{`Status: `}
+				<span
+					className={`text-${statusIndicator}`}
+					data-reservation-id-status={reservation_id}>
+					{status}
+				</span>
+				<p>(Reservation ID:#{reservation_id})</p>
 			</div>
 		</div>
 	)

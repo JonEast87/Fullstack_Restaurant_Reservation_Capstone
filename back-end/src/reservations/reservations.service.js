@@ -21,8 +21,13 @@ function create(reservation) {
 		.then((data) => data[0])
 }
 
+function update(reservation_id, status) {
+	return knex('reservation').where({ reservation_id }).update({ status }, '*')
+}
+
 module.exports = {
 	list,
 	create,
 	read,
+	update,
 }

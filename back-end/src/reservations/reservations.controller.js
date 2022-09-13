@@ -1,5 +1,5 @@
 const service = require('./reservations.service')
-const asyncErrorBoundary = require('../errors/ayncErrorBoundary')
+const asyncErrorBoundary = require('../errors/asyncErrorBoundary')
 const hasProperty = require('../errors/hasProperties')
 
 const VALID_PROPERTIES = [
@@ -63,12 +63,20 @@ function dateIsNotPast(reservation_date, reservation_time) {
 	return date > today
 }
 
+function checkStatus(status) {
+	if (status || status === 'booked') {
+		return true
+	} else {
+		return false
+	}
+}
+
 function isBusinessHours(reservation_time) {
 	return reservation_time <= '21:30' && reservation_time >= '10:30'
 }
 
 function hasValidValues(req, res, next) {
-	const { reservation_date, reservation_time, people } = req.body.data
+	const { reservation_date, reservation_time, people, status } = req.body.data
 
 	if (!Number.isInteger(people) || people < 1) {
 		return next({
@@ -112,6 +120,40 @@ function hasValidValues(req, res, next) {
 		})
 	}
 
+	if (checkStatus(status)) {
+		return next({
+			status: 400,
+			message: 'Cannot use "seated" or "finished" statuses upon creation.',
+		})
+	}
+
+	next()
+}
+
+function statusValid(req, res, next) {
+	const { status } = req.body.data
+	const VALID_STATUSES = ['seated', 'finished', 'booked']
+
+	if (!VALID_STATUSES.includes(status)) {
+		return next({
+			status: 400,
+			message: `${status} is invalid.`,
+		})
+	}
+
+	next()
+}
+
+function statusFinished(req, res, next) {
+	const { status } = res.locals.reservation
+
+	if (status === 'finished') {
+		return next({
+			status: 400,
+			message: 'Finished reservations cannot be updated.',
+		})
+	}
+
 	next()
 }
 
@@ -138,6 +180,13 @@ async function create(req, res) {
 	res.status(201).json({ data })
 }
 
+async function update(req, res) {
+	const newStatus = req.body.data.status
+	const reservationId = res.locals.reservation.reservation_id
+	let data = await service.update(reservationId, newStatus)
+	res.status(200).json({ data: { status: newStatus } })
+}
+
 module.exports = {
 	create: [
 		hasOnlyValidProperties,
@@ -147,4 +196,10 @@ module.exports = {
 	],
 	list: [asyncErrorBoundary(list)],
 	read: [reservationExists, asyncErrorBoundary(read)],
+	update: [
+		reservationExists,
+		statusValid,
+		statusFinished,
+		asyncErrorBoundary(update),
+	],
 }

@@ -10,4 +10,6 @@ router.route('/').get(controller.list).post(controller.create)
 
 router.route('/:reservationId').get(controller.read)
 
+router.route('/:reservationId/status').put(controller.update)
+
 module.exports = router
