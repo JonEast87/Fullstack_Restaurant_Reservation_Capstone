@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import { useParams } from 'react-router'
-import { listTables, createSeat, readReservation } from '../../utils/api'
+import { listTables, updateTable, readReservation } from '../../utils/api'
 import ErrorAlert from '../../layout/ErrorAlert'
 
 function Seat() {
@@ -45,7 +45,7 @@ function Seat() {
 
 		setAssignTableError(null)
 		console.log(formData.table_id)
-		createSeat(reservation_id, formData.table_id, abortController.signal)
+		updateTable(reservation_id, formData.table_id, abortController.signal)
 			.then(() => history.push('/dashboard'))
 			.catch(setAssignTableError)
 
