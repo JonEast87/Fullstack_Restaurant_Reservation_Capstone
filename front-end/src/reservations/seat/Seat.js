@@ -44,7 +44,7 @@ function Seat() {
 		const abortController = new AbortController()
 
 		setAssignTableError(null)
-
+		console.log(formData.table_id)
 		createSeat(reservation_id, formData.table_id, abortController.signal)
 			.then(() => history.push('/dashboard'))
 			.catch(setAssignTableError)
@@ -59,7 +59,7 @@ function Seat() {
 
 	return (
 		<section>
-			<h1>Assign Part of {reservationDetails.people} to a Table </h1>
+			<h1>Assign Party of {reservationDetails.people} to a Table </h1>
 			<ErrorAlert error={allTablesError} />
 			<ErrorAlert error={reservationError} />
 			<form onSubmit={handleSubmit}>

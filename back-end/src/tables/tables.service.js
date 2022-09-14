@@ -18,7 +18,6 @@ function read(table_id) {
 		.then((result) => result[0])
 }
 
-// updates table after being assigned a reservation - also updates reservation status
 async function update(updatedTable, resId, updatedResStatus) {
 	try {
 		await knex.transaction(async (trx) => {
@@ -33,7 +32,6 @@ async function update(updatedTable, resId, updatedResStatus) {
 				.then((updatedReservations) => updatedReservations[0])
 		})
 	} catch (error) {
-		// If we get here, neither the reservation nor table updates have taken place.
 		console.error(error)
 	}
 }

@@ -20,7 +20,15 @@ function List({ reservations }) {
 					reservation.status === 'booked' ? 'primary' : 'dark'
 				}`}
 				key={index}>
-				<Reservation reservation={reservation} />
+				<Reservation
+					reservation_id={reservation.reservation_id}
+					reservation_date={reservation.date}
+					first_name={reservation.first_name}
+					last_name={reservation.last_name}
+					mobile_number={reservation.mobile_number}
+					reservation_time={reservation.reservation_time}
+					people={reservation.people}
+				/>
 			</div>
 		</div>
 	))

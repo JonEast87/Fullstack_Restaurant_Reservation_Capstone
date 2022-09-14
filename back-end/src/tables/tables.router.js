@@ -6,11 +6,11 @@ const controller = require('./tables.controller')
  *
  * @type {Router}
  */
-router.route('/').get(controller.list).post(controller.create)
-
 router
 	.route('/:table_id/seat')
 	.put(controller.update)
 	.delete(controller.destroy)
+
+router.route('/').get(controller.list).post(controller.create)
 
 module.exports = router

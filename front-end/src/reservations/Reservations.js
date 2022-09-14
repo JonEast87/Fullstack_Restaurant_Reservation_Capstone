@@ -8,10 +8,10 @@ function Reservations() {
 	return (
 		<main>
 			<Switch>
-				<Route path={'/reservations/new'}>
+				<Route path='/reservations/new'>
 					<New />
 				</Route>
-				<Route path={'/reservations/:reservation_id/seat'}>
+				<Route path='/reservations/:reservation_id/seat'>
 					<Seat />
 				</Route>
 				<Route>
