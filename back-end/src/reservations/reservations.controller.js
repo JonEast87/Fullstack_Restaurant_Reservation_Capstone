@@ -9,7 +9,9 @@ const VALID_PROPERTIES = [
 	'reservation_date',
 	'reservation_time',
 	'people',
+	'status',
 ]
+
 const hasRequiredProperties = hasProperty(...VALID_PROPERTIES)
 
 // ---- Validation Handlers ----
@@ -23,7 +25,7 @@ async function reservationExists(req, res, next) {
 		return next()
 	}
 	next({
-		status: 400,
+		status: 404,
 		message: `Reservation with id: ${reservationId} was not found.`,
 	})
 }
@@ -59,12 +61,12 @@ function dayIsTuesday(dateString) {
 
 function dateIsNotPast(reservation_date, reservation_time) {
 	const today = Date.now()
-	const date = new Date(`${reservation_date} ${reservation_time}`).valueOf()
-	return date > today
+	const date = new Date(`${reservation_date} ${reservation_time}`)
+	return date.valueOf() > today
 }
 
-function checkStatus(status) {
-	if (status || status === 'booked') {
+function statusBooked(status) {
+	if (!status || status === 'booked') {
 		return true
 	} else {
 		return false
@@ -120,13 +122,12 @@ function hasValidValues(req, res, next) {
 		})
 	}
 
-	if (checkStatus(status)) {
+	if (!statusBooked(status)) {
 		return next({
 			status: 400,
 			message: 'Cannot use "seated" or "finished" statuses upon creation.',
 		})
 	}
-
 	next()
 }
 
@@ -140,7 +141,6 @@ function statusValid(req, res, next) {
 			message: `${status} is invalid.`,
 		})
 	}
-
 	next()
 }
 
@@ -150,10 +150,9 @@ function statusFinished(req, res, next) {
 	if (status === 'finished') {
 		return next({
 			status: 400,
-			message: 'Finished reservations cannot be updated.',
+			message: 'Once a reservation is finished it cannot be updated.',
 		})
 	}
-
 	next()
 }
 
@@ -165,21 +164,28 @@ function statusFinished(req, res, next) {
 async function list(req, res) {
 	const { date } = req.query
 	const reservations = await service.list(date)
-	res.locals.data = reservations
-	const { data } = res.locals
-	res.json({ data: data })
+	res.json({ data: reservations })
 }
 
+/**
+ * Read handler for reservation resources
+ */
 async function read(req, res) {
 	const { reservation } = res.locals
 	res.json({ data: reservation })
 }
 
+/**
+ * Create handler for reservation resources
+ */
 async function create(req, res) {
 	const data = await service.create(req.body.data)
 	res.status(201).json({ data })
 }
 
+/**
+ * Create update for reservation resources
+ */
 async function update(req, res) {
 	const newStatus = req.body.data.status
 	const reservationId = res.locals.reservation.reservation_id
@@ -194,7 +200,6 @@ module.exports = {
 		hasValidValues,
 		asyncErrorBoundary(create),
 	],
-	list: [asyncErrorBoundary(list)],
 	read: [reservationExists, asyncErrorBoundary(read)],
 	update: [
 		reservationExists,
@@ -202,4 +207,5 @@ module.exports = {
 		statusFinished,
 		asyncErrorBoundary(update),
 	],
+	list: asyncErrorBoundary(list),
 }
