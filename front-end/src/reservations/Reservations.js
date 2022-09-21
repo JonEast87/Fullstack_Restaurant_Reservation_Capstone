@@ -1,6 +1,6 @@
 import React from 'react'
 import { Route, Switch } from 'react-router-dom'
-import New from '../new/New'
+import New from './new/New'
 import Seat from './seat/Seat'
 import NotFound from '../layout/NotFound'
 

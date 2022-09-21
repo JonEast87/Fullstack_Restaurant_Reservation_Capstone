@@ -76,8 +76,14 @@ function Seat() {
 					))}
 				</select>
 
-				<button type='submit'>Submit</button>
-				<button type='button' value='Cancel' onClick={handleCancel}>
+				<button type='submit' className='btn btn-primary'>
+					Submit
+				</button>
+				<button
+					type='button'
+					className='btn btn-light'
+					value='Cancel'
+					onClick={handleCancel}>
 					Cancel
 				</button>
 			</form>

@@ -43,8 +43,9 @@ function Table({ table }) {
 					<div className={`bg-${occupied ? 'light' : 'success'}`}>
 						<h6 className='text-center' data-table-id-status={`${table_id}`}>
 							{occupied ? 'occupied' : 'free'}
-							<ErrorAlert error={clearTableError} />
 						</h6>
+						{occupied ? `(res_id #$(occupied))` : null}
+						<ErrorAlert error={clearTableError} />
 					</div>
 				</li>
 				<li className='list-group-item'>

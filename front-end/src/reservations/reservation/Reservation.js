@@ -1,15 +1,16 @@
 import React from 'react'
 
-function Reservation({
-	reservation_id,
-	first_name,
-	last_name,
-	mobile_number,
-	reservation_time,
-	people,
-	status = null,
-}) {
-	//TODO incoming "status" prop needs logic still
+function Reservation({ reservation }) {
+	const {
+		reservation_id,
+		first_name,
+		last_name,
+		mobile_number,
+		reservation_time,
+		people,
+		status,
+	} = reservation
+
 	let displayStatus = status || 'booked'
 
 	const statusIndicators = {
@@ -20,8 +21,17 @@ function Reservation({
 
 	const statusIndicator = statusIndicators[displayStatus]
 
+	const book =
+		status !== 'booked' ? null : (
+			<a
+				href={`/reservations/${reservation_id}/seat`}
+				className='btn btn-primary'>
+				Seat
+			</a>
+		)
+
 	return (
-		<>
+		<section>
 			<div className='card-header'>{reservation_time}</div>
 			<div className='card-body'>
 				<h5 className='card-title'>
@@ -30,16 +40,14 @@ function Reservation({
 				<p className='card-text'>
 					Contact: {first_name} {last_name}, {mobile_number}
 				</p>
-				<a
-					href={`/reservations/${reservation_id}/seat`}
-					className='btn btn-primary'>
-					Seat
-				</a>
+				{book}
 			</div>
-			<div className={`card-footer text-${statusIndicator}`}>
-				Status: {displayStatus}
+			<div
+				className={`card-footer text-${statusIndicator}`}
+				data-reservation-id-status={reservation_id}>
+				Status: {status}
 			</div>
-		</>
+		</section>
 	)
 }
 

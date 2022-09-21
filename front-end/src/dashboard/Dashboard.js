@@ -3,7 +3,7 @@ import useQuery from '../utils/useQuery'
 import { listReservations, listTables } from '../utils/api'
 import ErrorAlert from '../layout/ErrorAlert'
 import DateNavigation from './DateNavigation'
-import ReservationsList from '../reservations/list/List'
+import ReservationsList from '../reservations/list/ReservationsList'
 import TablesList from '../tables/list/TablesList'
 
 /**

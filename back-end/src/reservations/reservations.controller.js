@@ -1,6 +1,6 @@
 const service = require('./reservations.service')
 const asyncErrorBoundary = require('../errors/asyncErrorBoundary')
-const hasProperty = require('../errors/hasProperties')
+const hasProperties = require('../errors/hasProperties')
 
 const VALID_PROPERTIES = [
 	'first_name',
@@ -12,7 +12,16 @@ const VALID_PROPERTIES = [
 	'status',
 ]
 
-const hasRequiredProperties = hasProperty(...VALID_PROPERTIES)
+const REQUIRED_PROPERTIES = [
+	'first_name',
+	'last_name',
+	'mobile_number',
+	'reservation_date',
+	'reservation_time',
+	'people',
+]
+
+const hasRequiredProperties = hasProperties(...REQUIRED_PROPERTIES)
 
 // ---- Validation Handlers ----
 
