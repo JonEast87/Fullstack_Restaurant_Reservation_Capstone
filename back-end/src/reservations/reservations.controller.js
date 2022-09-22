@@ -55,6 +55,17 @@ function hasOnlyValidProperties(req, res, next) {
 	next()
 }
 
+function hasValidQuery(req, res, next) {
+	const { date, mobile_number } = req.query
+	if (!date && !mobile_number) {
+		return next({
+			status: 400,
+			message: 'Either a ?date or ?mobile_number query is needed.',
+		})
+	}
+	next()
+}
+
 function timeIsValid(timeString) {
 	return timeString.match(/[0-9]{2}:[0-9]{2}/)
 }
@@ -171,8 +182,10 @@ function statusFinished(req, res, next) {
  * List handler for reservation resources
  */
 async function list(req, res) {
-	const { date } = req.query
-	const reservations = await service.list(date)
+	const { mobile_number, date } = req.query
+	const reservations = await (mobile_number
+		? service.search(mobile_number)
+		: service.list(date))
 	res.json({ data: reservations })
 }
 
@@ -193,9 +206,27 @@ async function create(req, res) {
 }
 
 /**
- * Create update for reservation resources
+ * Update hanndker for reservation resources
  */
 async function update(req, res) {
+	const { reservation_id } = res.locals.reservation
+	const newReservationDetails = req.body.data
+	const existingReservation = res.locals.reservation
+	const mergedReservation = {
+		...existingReservation,
+		...newReservationDetails,
+	}
+	let updatedReservation = await service.update(
+		reservation_id,
+		mergedReservation
+	)
+	res.status(200).json({ data: updatedReservation })
+}
+
+/**
+ *  Update handler for reservation statuses
+ */
+async function updateStatus(req, res) {
 	const newStatus = req.body.data.status
 	const reservationId = res.locals.reservation.reservation_id
 	let data = await service.update(reservationId, newStatus)
@@ -212,9 +243,17 @@ module.exports = {
 	read: [reservationExists, asyncErrorBoundary(read)],
 	update: [
 		reservationExists,
-		statusValid,
-		statusFinished,
+		hasOnlyValidProperties,
+		hasRequiredProperties,
+		hasValidValues,
+		statusBooked,
 		asyncErrorBoundary(update),
 	],
-	list: asyncErrorBoundary(list),
+	updateStatus: [
+		reservationExists,
+		statusValid,
+		statusFinished,
+		asyncErrorBoundary(updateStatus),
+	],
+	list: [hasValidQuery, asyncErrorBoundary(list)],
 }
