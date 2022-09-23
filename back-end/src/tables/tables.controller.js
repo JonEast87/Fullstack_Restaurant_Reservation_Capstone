@@ -204,7 +204,7 @@ module.exports = {
 		asyncErrorBoundary(update),
 	],
 	destroy: [
-		asyncErrorBoundary(tableExists),
+		tableExists,
 		tableIsNotFree,
 		unoccupyTable,
 		asyncErrorBoundary(update),
