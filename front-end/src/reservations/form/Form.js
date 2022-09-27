@@ -1,7 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
+import { useParams } from 'react-router'
 import { formatAsTime } from '../../utils/date-time'
-import { createReservation } from '../../utils/api'
+import {
+	createReservation,
+	updateReservation,
+	readReservation,
+} from '../../utils/api'
 import ErrorAlert from '../../layout/ErrorAlert'
 
 /**
@@ -10,7 +15,11 @@ import ErrorAlert from '../../layout/ErrorAlert'
  * method will contain the http-methods passed into form
  */
 
-function Form() {
+function Form({ method }) {
+	const { reservation_id } = useParams()
+	const [reservationsError, setReservationsError] = useState(null)
+	const history = useHistory()
+
 	const initialState = {
 		first_name: '',
 		last_name: '',
@@ -21,8 +30,19 @@ function Form() {
 	}
 
 	const [reservation, setReservation] = useState({ ...initialState })
-	const [reservationsError, setReservationsError] = useState(null)
-	const history = useHistory()
+
+	useEffect(() => {
+		if (method === 'POST') return
+
+		const abortController = new AbortController()
+		setReservationsError(null)
+
+		readReservation(reservation_id, abortController.signal)
+			.then(setReservation)
+			.catch(setReservationsError)
+
+		return () => abortController.abort()
+	}, [reservation_id, method])
 
 	const handleChange = ({ target }) => {
 		let value = target.value
@@ -39,12 +59,37 @@ function Form() {
 
 	const handleSubmit = (event) => {
 		event.preventDefault()
-		const abortController = new AbortController()
+		method === 'POST' ? submitNew() : submitEdit()
+	}
 
-		createReservation(reservation, abortController.signal)
-			.then(() => {
+	const submitNew = () => {
+		const abortController = new AbortController()
+		setReservationsError(null)
+
+		createReservation(setReservation, abortController.signal)
+			.then(() =>
 				history.push(`/dashboard?date=${reservation.reservation_date}`)
-			})
+			)
+			.catch(setReservationsError)
+	}
+
+	const submitEdit = () => {
+		const abortController = new AbortController()
+		setReservationsError(null)
+
+		const reservationData = {
+			first_name: reservation.first_name,
+			last_name: reservation.last_name,
+			people: reservation.people,
+			mobile_number: reservation.mobile_number,
+			reservation_date: reservation.reservation_date,
+			reservation_time: reservation.reservation_time,
+		}
+
+		updateReservation(reservation_id, reservationData, abortController.signal)
+			.then(() =>
+				history.push(`/dashboard?date=${reservation.reservation_date}`)
+			)
 			.catch(setReservationsError)
 
 		return () => abortController.abort()
@@ -56,7 +101,7 @@ function Form() {
 	}
 
 	return (
-		<form onSubmit={handleSubmit} name='create'>
+		<form onSubmit={handleSubmit}>
 			<fieldset>
 				<div className='form-group'>
 					<label htmlFor='first_name'>First Name</label>
@@ -128,7 +173,7 @@ function Form() {
 					</button>
 
 					<button type='submit' className='btn btn-primary'>
-						<span className='oi oi-check'>Create</span>
+						<span className='oi oi-check'>Submit</span>
 					</button>
 				</div>
 				<ErrorAlert error={reservationsError} />

@@ -48,14 +48,33 @@ function Dashboard({ date }) {
 
 	return (
 		<main>
-			<DateNavigation date={date} />
-			<h2 className='mb-0'>Reservations:</h2>
-			<ReservationsList reservations={reservations} />
-			<ErrorAlert error={reservationsError} />
-			<hr className='py-2 bg-dark' />
-			<h2 className='mb-0'>Tables:</h2>
-			<TablesList tables={tables} />
-			<ErrorAlert error={tablesError} />
+			<div className='row'>
+				<div className='col-12 mx-auto my-3'>
+					<DateNavigation date={date} />
+				</div>
+			</div>
+			<div className='row'>
+				<div className='col-md-12 mx-auto'>
+					<fieldset className='border border-bottom-0 border-dark p-3 m-0'>
+						<legend className='pl-2 text-white shadow bg-dark rounded sticky-top'>
+							Reservations
+						</legend>
+						<ReservationsList reservations={reservations} />
+						<ErrorAlert error={reservationsError} />
+					</fieldset>
+				</div>
+			</div>
+			<div className='row mt-3'>
+				<div className='col-md-12 mx-auto'>
+					<fieldset className='border border-bottom-0 border-dark p-3 m-0'>
+						<legend className='pl-2 text-white shadow bg-dark rounded sticky-top'>
+							Tables
+						</legend>
+						<TablesList tables={tables} />
+						<ErrorAlert error={tablesError} />
+					</fieldset>
+				</div>
+			</div>
 		</main>
 	)
 }

@@ -57,7 +57,7 @@ const REQUIRED_PROPERTIES = [
 const hasRequiredProperties = hasProperties(...REQUIRED_PROPERTIES)
 
 const dateFormat = /^\d\d\d\d-\d\d-\d\d$/
-const timeFormat = /^\d\d:\d\d$/
+const timeFormat = /^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$/
 
 function validTime(timeString) {
 	return timeString.match(timeFormat)?.[0]
@@ -84,7 +84,7 @@ function tuesdayDate(dateString) {
 	return date.getUTCDay() !== 2
 }
 
-function bookedStatus(status) {
+function bookedOrNot(status) {
 	if (!status || status === 'booked') {
 		return true
 	} else {
@@ -103,6 +103,7 @@ function hasValidValues(req, res, next) {
 		})
 	}
 	if (!validTime(reservation_time)) {
+		console.log(reservation_time)
 		return next({
 			status: 400,
 			message: 'The reservation_time must be in HH:MM:SS (or HH:MM) format.',
@@ -134,11 +135,11 @@ function hasValidValues(req, res, next) {
 				'We can hold this reservation, the restaurant is closed on Tuesdays.',
 		})
 	}
-	if (!bookedStatus(res.locals.reservation?.status)) {
+	if (!bookedOrNot(req.body.data?.status)) {
 		return next({
 			status: 400,
 			message:
-				'"Seated" or "finished" cannot be used as statuses when creating a reservation.',
+				'Cannot use "seated" or "finished" as statuses when creating a reservation.',
 		})
 	}
 	next()
@@ -164,6 +165,17 @@ function finishedStatus(req, res, next) {
 		return next({
 			status: 400,
 			message: `Once a reservationm is finished it cannot be updated.`,
+		})
+	}
+	next()
+}
+
+function bookedStatus(req, res, next) {
+	const { status } = res.locals.reservation
+	if (status !== 'booked') {
+		return next({
+			status: 400,
+			message: 'Only "booked" reservations maybe edited.',
 		})
 	}
 	next()
@@ -262,6 +274,7 @@ module.exports = {
 		hasRequiredProperties,
 		hasValidValues,
 		editedStatus,
+		bookedStatus,
 		asyncErrorBoundary(update),
 	],
 	updateStatus: [
