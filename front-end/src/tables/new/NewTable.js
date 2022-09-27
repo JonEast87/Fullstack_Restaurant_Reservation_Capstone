@@ -48,37 +48,66 @@ function NewTable() {
 
 	return (
 		<section>
-			<div className='d-md-flex mb-3'>
+			<div className='d-md-flex mb-3 text-center'>
 				<h1 className='mb-0'>Add a New Table</h1>
 			</div>
 			<form onSubmit={handleSubmit}>
-				<label htmlFor='table_name'>
-					Table Name:
-					<input
-						id='table_name'
-						type='text'
-						name='table_name'
-						onChange={handleChange}
-						value={formData.table_name}
-						required={true}
-					/>
-				</label>
-				<label htmlFor='capacity'>
-					Capacity:
-					<input
-						id='capacity'
-						type='number'
-						name='capacity'
-						onChange={handleChange}
-						required={true}
-						min='1'
-						value={formData.capacity}
-					/>
-				</label>
-				<button type='submit'>Submit</button>
-				<button type='button' value='Cancel' onClick={handleCancel}>
-					Cancel
-				</button>
+				<div className='row'>
+					<div className='col-auto'>
+						<div className='form-group form-now'>
+							<label htmlFor='table_name'>
+								Table Name:
+								<div className='col-8 pt-2'>
+									<input
+										id='table_name'
+										type='text'
+										name='table_name'
+										onChange={handleChange}
+										value={formData.table_name}
+										required={true}
+									/>
+								</div>
+							</label>
+						</div>
+						<div className='row'>
+							<div className='col-auto'>
+								<div className='form-group form-now'>
+									<label htmlFor='capacity'>
+										Capacity:
+										<div className='col-3 pt-2'>
+											<input
+												id='capacity'
+												type='number'
+												name='capacity'
+												onChange={handleChange}
+												required={true}
+												min='1'
+												value={formData.capacity}
+											/>
+										</div>
+									</label>
+								</div>
+							</div>
+						</div>
+						<div
+							className='btn-toolbar mb-5'
+							role='toolbar'
+							aria-label='Form action buttons'>
+							<button type='submit' className='btn btn-primary'>
+								Submit
+								<span className='oi oi-check ml-2'></span>
+							</button>
+							<button
+								type='button'
+								value='Cancel'
+								className='btn btn-secondary'
+								onClick={handleCancel}>
+								Cancel
+								<span className='oi oi-action-undo mr-2'></span>
+							</button>
+						</div>
+					</div>
+				</div>
 			</form>
 			<ErrorAlert error={tablesError} />
 		</section>
