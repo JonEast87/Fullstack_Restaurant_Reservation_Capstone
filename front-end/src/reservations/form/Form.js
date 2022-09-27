@@ -66,7 +66,7 @@ function Form({ method }) {
 		const abortController = new AbortController()
 		setReservationsError(null)
 
-		createReservation(setReservation, abortController.signal)
+		createReservation(reservation, abortController.signal)
 			.then(() =>
 				history.push(`/dashboard?date=${reservation.reservation_date}`)
 			)
