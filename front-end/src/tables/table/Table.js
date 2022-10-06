@@ -44,7 +44,7 @@ function Table({ table }) {
 						<h6 className='text-center' data-table-id-status={`${table_id}`}>
 							{occupied ? 'occupied' : 'free'}
 						</h6>
-						{occupied ? `(res_id #$(occupied))` : null}
+						{occupied ? `(Reservation ID: #${occupied}` : null}
 						<ErrorAlert error={clearTableError} />
 					</div>
 				</li>
